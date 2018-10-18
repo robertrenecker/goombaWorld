@@ -2,21 +2,15 @@ Name:
   Robert Renecker
 
 Title:
-  miniWorld
+  Robert's Mountain Shop Management System
 
 Description:
-  This project will use Unreal game engine to design a 3d maze that the user can play through.
+  This management system will help a worker at Robert's Mountain Shop better facilitate the renting of various mountain items to a customer. It will keep track of who the customer is, what they have rented and various other attributes that follow along with a rental contract.
 
 Actors:
-  1st person character
+  Generic User, Customer, Employee
 
 Functionality:
-  1. Creating a character
-  2. Beginning a level
-  3. Walking around the maze
-  4. Completing the maze or losing the game via traps, obstacles, giving up.
-  5. High scores (time)
-  6. User can track health of character
-  7. User can interact with assets (healing items, energy items...)
-
-  
+ 1. Customers can create an account within the shops database
+ 2. Rentals and returns can be handled efficiently through OOP style architecture
+ 3. Searching and maintaining items and their respective attributes will be efficient and easy to handle. 
