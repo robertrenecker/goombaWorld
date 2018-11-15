@@ -1,0 +1,13 @@
+{% extends "bootstrap/base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block content%}
+  <div class="container">
+
+    <h1 style="margin-left:20%;"> Rob's Mountain Shop! </h1>
+    <div class="row">
+    <li style="padding-bottom:5px;margin-left:30%;""><a class="btn btn-primary" href="{{ url_for('login') }}"> Login </a></li>
+    <li style="padding-bottom:5px;margin-left:30%;"><a class="btn btn-primary" href="{{ url_for('signup') }}"> Signup </a></li>
+    </div>
+</div>
+{% endblock %}

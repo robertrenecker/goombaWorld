@@ -1,0 +1,101 @@
+{% extends "bootstrap/base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block content%}
+  <div class="container">
+
+    <p> Welcome, {{ user.username }} </p>
+
+      <div class="row">
+        <div class="col col-sm-2">
+          <a class="btn btn-primary" data-toggle="collapse" href="#collapseSnowboard" role="button" aria-expanded="false" aria-controls="multiCollapseExample1">All</a>
+        </div>
+        <div class="col col-sm-2">
+          <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#collapseSki" aria-expanded="false" aria-controls="multiCollapseExample2">Ski Rentals</button>
+        </div>
+        <div class="col col-sm-2">
+          <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#collapseBoots" aria-expanded="false" aria-controls="multiCollapseExample2">Boots</button>
+        </div>
+        <div class="col col-sm-2">
+          <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#collapseOther" aria-expanded="false" aria-controls="multiCollapseExample2">Other</button>
+        </div>
+        <div class="col col-sm-2">
+          <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#checkout" aria-expanded="false" aria-controls="checkout">Checkout</button>
+        </div>
+        <div class="col col-sm-2">
+          <p> Total Cost: {{ user.cart.get_total_cost() }} </p>
+        </div>
+      </div>
+
+      <div class="row">
+
+          <div class="collapse multi-collapse" id="collapseSnowboard">
+            <div class="card card-body">
+              <h2>Put Snowboard Rentals Here</h2>
+              <h2> {{user.cart.rentals}}
+              {% for things in user.cart.rentals %}
+                <h3>things</h3>
+              {% endfor %}
+            </div>
+          </div>
+
+
+
+
+          <div class="collapse multi-collapse" id="collapseSki">
+            <div class="card card-body">
+              <ul class="list-group">
+              {% for ski in rental %}
+              <li class='list-group-item'>
+                <div class="row">
+                  <h3> {{ ski.item_name }}</h3>
+                  <div class="col col-lg-4">
+
+                      <img src="{{ski.item_image_url}}" style="width:104px;height:150px;"/>
+                  </div>
+                  <div class="col col-lg-3">
+                    <h4>{{ ski.item_name}} </h4>
+                  </div>
+                  <div class="col col-lg-1">
+                    <h4>{{ ski.item_cost }}</h4>
+                  </div>
+                  <div class="col col-lg-2">
+                    <form method='POST'>
+                      <button class="btn btn-lg btn-primary btn-block" type="submit"  name="selected" value={{ski.id}}>Add Item</button>
+                    </form>
+                  </div>
+
+                </div>
+              </li>
+
+              {% endfor %}
+              </ul>
+              <li><a class="btn btn-primary" href="{{ url_for('checkout') }}"> Checkout </a></li>
+            </div>
+          </div>
+
+          <div class="collapse multi-collapse" id="collapseBoots">
+            <div class="card card-body">
+                <h2>Put Boot Rentals Here</h2>
+            </div>
+          </div>
+
+
+          <div class="collapse multi-collapse" id="collapseOther">
+            <div class="card card-body">
+              <h2>Put Other Rentals Here</h2>
+            </div>
+          </div>
+
+
+          <div class="collapse multi-collapse" id="checkout">
+            <div class="card card-body">
+                <li><a href="{{ url_for('checkout') }}"> Checkout </a></li>
+            </div>
+          </div>
+
+
+
+  <li><a href="{{ url_for('logout') }}"> Log Out </a></li>
+</div>
+{% endblock %}

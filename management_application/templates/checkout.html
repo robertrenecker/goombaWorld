@@ -1,0 +1,42 @@
+{% extends "bootstrap/base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block content%}
+  <div class="container">
+
+    <p> Welcome, {{ user.username }} </p>
+
+
+          <ul class="list-group">
+
+            {% for item in user.cart.rentals %}
+            <div class="row">
+
+                <div class="col col-lg-4">
+                  <img src="{{item.item_image_url}}" style="width:104px;height:150px;"/>
+                </div>
+                <div class="col col-lg-5">
+                  <h4> {{ item.item_name }} </h4>
+                  <h4> yo </h4>
+                </div>
+                <div class="col col-lg-1">
+                  <h4> {{ item.item_cost }} </h4>
+                </div>
+                <div class="col col-lg-2">
+                  <form method='POST'>
+                    <button class="btn btn-lg btn-primary btn-block" type="submit"  name="remove" value={{item.id}}>Remove</button>
+                  </form>
+                </div>
+
+            </div>
+          {% endfor %}
+          </ul>
+
+
+  <li><a class="btn btn-primary" href="{{ url_for('dashboard') }}"> Go Back </a></li>
+
+
+
+  <li><a href="{{ url_for('logout') }}"> Log Out </a></li>
+</div>
+{% endblock %}
