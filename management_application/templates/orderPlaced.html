@@ -1,0 +1,12 @@
+{% extends "bootstrap/base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block content%}
+<div class="container">
+<p>Thanks {{user.username}},</p>
+<span><h1>Your rental was processed, thanks for renting from Robert's Mountain Rental Shop!</h1></span>
+
+<a class="btn btn-primary" href="{{ url_for('index') }}"> Home </a>
+</div>
+
+{% endblock %}

@@ -4,39 +4,49 @@
 {% block content%}
   <div class="container">
 
-    <p> Welcome, {{ user.username }} </p>
+    <p> user: {{ user._username }} </p>
 
-
-          <ul class="list-group">
-
-            {% for item in user.cart.rentals %}
+        {% for item in user.cart.rentals %}
             <div class="row">
-
-                <div class="col col-lg-4">
-                  <img src="{{item.item_image_url}}" style="width:104px;height:150px;"/>
-                </div>
-                <div class="col col-lg-5">
-                  <h4> {{ item.item_name }} </h4>
-                  <h4> yo </h4>
-                </div>
-                <div class="col col-lg-1">
-                  <h4> {{ item.item_cost }} </h4>
-                </div>
-                <div class="col col-lg-2">
-                  <form method='POST'>
-                    <button class="btn btn-lg btn-primary btn-block" type="submit"  name="remove" value={{item.id}}>Remove</button>
-                  </form>
-                </div>
-
+              <div class="col-sm-4">
+                <img src="{{item._itemImageUrl}}" style="width:104px;height:150px;"/>
+              </div>
+              <div class="col-sm-5">
+                <h4> {{ item._itemName }} </h4>
+              </div>
+              <div class="col-sm-1">
+                <h4> {{ item._itemCost }} </h4>
+              </div>
+              <div class="col-sm-2">
+                <form method='POST'>
+                  <button class="btn btn-danger" type="submit"  name="remove" value={{item._id}}>Remove</button>
+                </form>
+              </div>
             </div>
-          {% endfor %}
-          </ul>
+            <br/>
+        {% endfor %}
+
+    <div class="row justify-content-center">
+      <div class="col-sm-6">
+        <h2>Total Cost: {{user.cart.get_total_cost()}}</h2>
+      </div>
+      <div class-"col-sm-6">
+        <form method='POST'>
+          <button class="btn btn-success" type="submit"  name="order" value=1>Place Order</button>
+        </form>
+
+      </div>
+    </div>
 
 
-  <li><a class="btn btn-primary" href="{{ url_for('dashboard') }}"> Go Back </a></li>
-
-
-
-  <li><a href="{{ url_for('logout') }}"> Log Out </a></li>
-</div>
+    <div class="row">
+      <div class="col col-sm-2">
+      <a class="btn btn-primary" href="{{ url_for('dashboard') }}"> Go Back </a>
+      </div>
+      <div class="col col-sm-2">
+      <a class="btn btn-primary" href="{{ url_for('logout') }}"> Log Out </a>
+      </div>
+    </div>
+    <br/>
+  </div>
 {% endblock %}

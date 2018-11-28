@@ -7,14 +7,18 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import relationship
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
-from functools import reduce
 import os
-import abc
-import Checkout
+
+
+
+
+
 #__name__ is special variable
 app = Flask(__name__)
 Bootstrap(app)
 db = SQLAlchemy(app)
+
+
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
@@ -26,23 +30,96 @@ app.config.update(dict(
 ))
 
 
+
+
+
 cart_with_items = db.Table('cart_with_items',
-    db.Column('cart_id', db.Integer, db.ForeignKey('cart.id'), primary_key=True),
-    db.Column('rental_id', db.Integer, db.ForeignKey('rental.id'), primary_key=True)
+    db.Column('cart_id', db.Integer, db.ForeignKey('cart._id'), primary_key=True),
+    db.Column('rental_id', db.Integer, db.ForeignKey('rental._id'), primary_key=True)
     )
 
 
+class UserFactory():
+    def makeSpecificUser(self, type, username, email, password, jobPosition=None):
+        if type=="customer":
+            return Customer(username, email, password)
+        elif type=="employee":
+            return Employee(username, email, password, jobPosition)
+
 class User(UserMixin, db.Model):
+    static_id = 1
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(15), unique=True)
-    email = db.Column(db.String(50), unique=True)
-    password = db.Column(db.String(80))
+    _username = db.Column(db.String(15), unique=True)
+    _email = db.Column(db.String(50), unique=True)
+    _password = db.Column(db.String(80))
+    type = db.Column(db.String(32))
 
     cart = db.relationship("Cart", backref='user', lazy=True, uselist=False)
 
+    def __init__(self,username, email, password):
+        self.id = User.static_id
+        self._username = username;
+        self._email = email;
+        self._password = password;
+
+        User.static_id += 1
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'user',
+        'polymorphic_on': type,
+    }
+
+    def getCart(self):
+        return self.cart;
+    def getUsername(self):
+        return self._username
+    def getEmail(self):
+        return self._email
+    def getId(self):
+        return self.id
+    def getPassword(self):
+        return self._password
+    def setUsername(self, username):
+        self._username = username
+    def setEmail(self, email):
+        self._email = email
+    def setId(self, id):
+        self.id = id
+    def setPassword(self, password):
+        self._password = password
+    def setCart(self):
+        self.cart = Cart(user = self)
+
+
+    def isCustomer(self):
+        pass
+
+
+class Customer(User):
+    __mapper_args__ = {
+        'polymorphic_identity': 'customer'
+    }
+
+    def __init__(self,username, email, password):
+        super().__init__(username, email, password)
+    def isCustomer(self):
+        return True
+
+class Employee(User):
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'employee'
+    }
+    def __init__(self, username, email, password, jobPosition):
+        super().__init__(username, email, password)
+        self._jobPosition = jobPosition
+
+    def isCustomer(self):
+        return False
+
 
 class Cart(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    _id = db.Column(db.Integer, primary_key=True)
 
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
@@ -58,12 +135,10 @@ class Cart(db.Model):
 
     def add_item(self,item):
 
-        print(item.item_name)
+        print(item._itemName)
         try:
-
-
             self.rentals.append(item)
-            item.available = 0
+            item._available -= 1
             db.session.commit()
             print(self.rentals)
 
@@ -73,70 +148,182 @@ class Cart(db.Model):
 
     def remove_item(self,item):
         try:
-            item_to_be_removed = Rental.query.filter_by(id=item).first()
+            item_to_be_removed = Rental.query.filter_by(_id=item).first()
             print(item_to_be_removed)
             self.rentals.remove(item_to_be_removed)
 
-            item_to_be_removed.available=1
+            item_to_be_removed._available=1
             db.session.commit()
         except:
             print("Couldn't remove item")
+
+    def checkout(self):
+        for item in self.rentals:
+
+            self.rentals.remove(item)
+            item._available += 1;
+        db.session.commit()
+
+
+
 
 
 
 
 class Rental(db.Model):
 
-    id = db.Column(db.Integer, primary_key=True)
-    item_name = db.Column(db.String(15), unique=True);
-    item_cost = db.Column(db.Float)
-    item_image_url = db.Column(db.String(100))
-    item_type = db.Column(db.String(50))
-    available = db.Column(db.Integer)
+    _id = db.Column(db.Integer, primary_key=True)
+    _itemName = db.Column(db.String(15), unique=True);
+    _itemCost = db.Column(db.Float)
+    _itemImageUrl = db.Column(db.String(200))
+    _available = db.Column(db.Integer)
+    type = db.Column(db.String(32))
     #foreign key is a primary key that refers to a key in another table
+    __mapper_args__ = {
+        'polymorphic_identity': 'rental',
+        'polymorphic_on': type,
+    }  #
+
+    def __init__(self,item_id, item_name, item_cost, item_image_url,stock):
+        self._id = item_id
+        self._itemName = item_name
+        self._itemCost = item_cost
+        self._itemImageUrl = item_image_url
+        self._bootSize
+        self._available = stock
 
     carts = db.relationship('Cart', secondary='cart_with_items')
 
-    def get_item_id():
-        pass
+    def getId():
+        return self._id
 
-    def getItemname():
-        pass
+    def getItemName():
+        return self._itemName
 
     def getCost(self):
-        return self.item_cost
+        return self._itemCost
 
     def getRentals():
-        available_rentals = Rental.query.filter_by(available=1)
+        available_rentals = Rental.query.filter(Rental._available>=1)
         return available_rentals
 
 
-# class Snowboard(Rental):
-#
-#     def __init__(self,item_id, item_name, item_cost, item_image_url):
-#         super().__init__(item_id, item_name, item_cost, item_image_url)
-#
-#
+class Snowboard(Rental, db.Model):
 
-class Skis(Rental):
-
-    def __init__(self, id, item_name, item_cost, item_image_url, stock):
-        #super().__init__(item_id, item_name, item_cost, item_image_url)
-        self.id = id
-        self.item_name = item_name
-        self.item_cost = item_cost
-        self.item_image_url = item_image_url
-        self.available = stock
+    __mapper_args__ = {
+        'polymorphic_identity': 'snowboard'
+    }
+    def __init__(self,item_id, item_name, item_cost, item_image_url,stock):
+        self._id = item_id
+        self._itemName = item_name
+        self._itemCost = item_cost
+        self._itemImageUrl = item_image_url
+        self._available = stock
 
 
-    def get_item_id(self):
-        return self.id
+    def getId(self):
+        return self._id
 
-    def getItemname(self):
-        return self.item_name
+    def getItemName(self):
+
+        return self._itemName
 
     def getCost(self):
-        return self.item_cost
+        return self._itemCost
+
+    def getRentals():
+        available_rentals = Snowboard.query.filter(Skis._available>=1)
+        return available_rentals
+
+
+class Skis(Rental,db.Model):
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'skis'
+    }
+    def __init__(self, id, item_name, item_cost, item_image_url, stock):
+        #super().__init__(item_id, item_name, item_cost, item_image_url)
+        self._id = id
+        self._itemName = item_name
+        self._itemCost = item_cost
+        self._itemImageUrl = item_image_url
+        self._available = stock
+
+
+
+    def getId(self):
+        return self._id
+
+    def getItemName(self):
+        return self._itemName
+
+    def getCost(self):
+        return self._itemCost
+
+    def getRentals():
+        available_rentals = Skis.query.filter(Skis._available>=1)
+        return available_rentals
+
+
+class Boots(Rental, db.Model):
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'boot'
+    }
+
+
+    def __init__(self,item_id, item_name, item_cost, item_image_url, stock, boot_size):
+        super().__init__(item_id, item_name, item_cost, item_image_url, stock)
+        self._bootSize = boot_size
+
+
+    def getId(self):
+        return self._id
+
+    def getItemName(self):
+
+        return self._itemName
+
+    def getCost(self):
+        return self._itemCost
+
+    def getUrl(self):
+        return self._itemImageUrl
+
+    def getBootSize(self):
+        return self._bootSize
+
+    def getRentals():
+        available_rentals = Boots.query.filter(Boots._available>=1)
+        return available_rentals
+
+
+
+
+
+
+class RentalItemFactory():
+    def __init__(self, id, itemName, itemCost, itemImageUrl, stock):
+        self._id = id
+        self._itemName = itemName
+        self._itemCost = itemCost
+        self._itemImageUrl = itemImageUrl
+        self._stock = stock
+
+    def makeSnowRental(self,newRentalType):
+        #Skis
+        if newRentalType == "Ski":
+            return Skis(self._id, self._itemName, self._itemCost, self._itemImageUrl, self._stock);
+        elif newRentalType == "Snowboard":
+            print("we're making a snowboard\n");
+            return Snowboard(self._id, self._itemName, self._itemCost, self._itemImageUrl, self._stock);
+        elif newRentalType == "Boots":
+            print("Making a pair of boots")
+        else:
+            print("Making a other type of rental")
+
+
+
 
 
 
@@ -161,6 +348,17 @@ class RegisterForm(FlaskForm):
     username = StringField('username', validators=[InputRequired(), Length(min=4, max=15)])
     password = PasswordField('password',validators=[InputRequired(), Length(min=8, max=80)])
 
+class EmployeeRegisterForm(FlaskForm):
+    #email field
+    #password field
+    #
+
+    email = StringField('Email', validators=[InputRequired(), Email(message='Invalid email'), Length(max=50)])
+    username = StringField('Username', validators=[InputRequired(), Length(min=4, max=15)])
+    password = PasswordField('Password',validators=[InputRequired(), Length(min=8, max=80)])
+    jobPosition = StringField('Job Position', validators=[InputRequired(), Length(min=10, max=30)])
+
+
 @app.route("/")
 def index():
     return render_template("home.html")
@@ -169,14 +367,17 @@ def index():
 def login():
     form = LoginForm();
     if form.validate_on_submit():
-        user = User.query.filter_by(username=form.username.data).first()
+        user = User.query.filter_by(_username=form.username.data).first()
         if user:
-            if check_password_hash(user.password, form.password.data):
+            if check_password_hash(user._password, form.password.data):
                 session['username'] = form.username.data
 
                 #redirect them to dashboard
                 login_user(user, remember=form.remember.data)
-                return redirect(url_for('dashboard'))
+                if(type(user) == Employee):
+                    return redirect(url_for('employeeDashboard'))
+                else:
+                    return redirect(url_for('dashboard'))
         return '<h1> Invalid Username Or Password </h1>'
     return render_template("login.html", form=form)
 
@@ -188,11 +389,11 @@ def signup():
     form = RegisterForm();
     if form.validate_on_submit():
         hashed_password = generate_password_hash(form.password.data, method='sha256')
-        new_user = User(username = form.username.data, email = form.email.data, password = hashed_password)
+        new_user = UserFactory()
+        new_user = new_user.makeSpecificUser("customer", username = form.username.data, email = form.email.data, password = hashed_password)
         new_cart = Cart(user=new_user)
         try:
             db.session.add(new_user)
-
             db.session.commit()
             try:
                 db.session.add(new_cart)
@@ -202,10 +403,35 @@ def signup():
 
             return redirect(url_for('dashboard'))
         except:
-            return '<h1> username or email already taken.'
+            return '<h1> username or email already taken.</h1>'
 
 
     return render_template("signup.html", form = form)
+
+@app.route("/employeeSignup", methods=['GET', 'POST'])
+def employeeSignup():
+    form = EmployeeRegisterForm();
+    if form.validate_on_submit():
+        hashed_password = generate_password_hash(form.password.data, method='sha256')
+        # new_user = User(username = form.username.data, email = form.email.data, password = hashed_password)
+        # new_cart = Cart(user=new_user)
+        new_user = UserFactory()
+        new_user = new_user.makeSpecificUser("employee", username = form.username.data, email = form.email.data, password = hashed_password, jobPosition=form.jobPosition.data)
+        new_cart = Cart(user=new_user)
+        try:
+            db.session.add(new_user)
+            db.session.commit()
+            try:
+                db.session.add(new_cart)
+                db.session.commit()
+            except:
+                return'<h1>Couldnt add cart</h1>'
+
+            return redirect(url_for('dashboard'))
+        except:
+            return '<h1> username or email already taken.</h1>'
+    return render_template("employeeSignup.html", form = form)
+
 
 
 
@@ -213,14 +439,18 @@ def signup():
 @app.route("/dashboard", methods = ['POST','GET'])
 @login_required
 def dashboard():
-    print("The session is: %s \n\n\n"% session['username'])
+
+    if(current_user.type == "employee"):
+        return redirect(url_for('employeeDashboard'))
+
     if request.method=='POST':
         #Return string name for selected rental item
         item_id = request.form.get('selected', False)
         if item_id:
             #Query the name of selected rental item
             try:
-                new_cart_item = Rental.query.filter_by(id=item_id).first()
+                new_cart_item = Rental.query.filter_by(_id=item_id).first()
+                #rental 1
                 current_user.cart.add_item(new_cart_item)
 
             except:
@@ -229,9 +459,36 @@ def dashboard():
             print("empty cart")
 
     available_rentals = Rental.getRentals()
+    available_ski_rentals = Skis.getRentals()
+    available_snowboard_rentals = Snowboard.getRentals()
+    return render_template("dashboard.html", user=current_user, skis=available_ski_rentals, snowboards=available_snowboard_rentals, rental=available_rentals)
 
+@app.route("/employeeDashboard", methods = ['POST', 'GET'])
+@login_required
+def employeeDashboard():
 
-    return render_template("dashboard.html", user=current_user, rental=available_rentals)
+    if(current_user.type != "employee"):
+        return redirect(url_for('dashboard'))
+
+    if request.method=='POST':
+        #Return string name for selected rental item
+        item_id = request.form.get('selected', False)
+        if item_id:
+            #Query the name of selected rental item
+            try:
+                new_cart_item = Rental.query.filter_by(_id=item_id).first()
+                #rental 1
+                current_user.cart.add_item(new_cart_item)
+
+            except:
+                print("couldn't find item")
+        else:
+            print("empty cart")
+
+    available_rentals = Rental.getRentals()
+    available_ski_rentals = Skis.getRentals()
+    available_snowboard_rentals = Snowboard.getRentals()
+    return render_template("employeeDashboard.html", user=current_user, skis=available_ski_rentals, snowboards=available_snowboard_rentals, rental=available_rentals)
 
 @app.route("/logout")
 @login_required
@@ -248,16 +505,29 @@ def checkout():
     if request.method=='POST':
         item_id = request.form.get('remove', False)
         if item_id:
-
             current_user.cart.remove_item(item_id)
-    return render_template("checkout.html", user=current_user, name=current_user.username)
+        temp_cart = request.form.get('order', False)
+
+        if temp_cart=='1':
+            print("Received Order Input")
+            current_user.cart.checkout()
+            return redirect(url_for('orderPlaced'))
 
 
-    # session['cart'].get_total_of_cart();
-    print("got total")
+    return render_template("checkout.html", user=current_user, name=current_user._username)
 
-    return render_template("checkout.html", name=current_user.username)
 
+
+@app.route("/orderPlaced")
+@login_required
+def orderPlaced():
+    return render_template("orderPlaced.html", user=current_user)
+
+
+@app.route("/pastOrders")
+@login_required
+def pastOrders():
+    return render_template("pastOrders.html", user=current_user)
 
 #if we were to run our application with python, we will
 #be able to run the application via python from app.run

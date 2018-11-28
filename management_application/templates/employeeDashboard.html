@@ -4,7 +4,7 @@
 {% block content%}
   <div class="container">
 
-    <p> {{ user._username }} </p>
+    <p> user: {{ user._username }} </p>
 
       <div class="row">
         <div class="col col-sm-2">
@@ -159,5 +159,6 @@
       <a class="btn btn-primary" href="{{ url_for('logout') }}"> Log Out </a>
     </div>
   </div>
+  <br/>
 </div>
 {% endblock %}

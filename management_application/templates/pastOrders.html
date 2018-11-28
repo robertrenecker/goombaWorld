@@ -1,0 +1,8 @@
+{% extends "bootstrap/base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block content%}
+  <div class="container">
+  <p> Hey {{user.getUsername()}} </p>
+  </div>
+{% endblock %}
