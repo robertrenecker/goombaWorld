@@ -56,6 +56,8 @@ class User(UserMixin, db.Model):
 
     cart = db.relationship("Cart", backref='user', lazy=True, uselist=False)
 
+
+
     def __init__(self,username, email, password):
         self.id = User.static_id
         self._username = username;
@@ -79,6 +81,9 @@ class User(UserMixin, db.Model):
         return self.id
     def getPassword(self):
         return self._password
+    def getCurrentOrders(self):
+        return self.currentOrders
+
     def setUsername(self, username):
         self._username = username
     def setEmail(self, email):
@@ -89,7 +94,6 @@ class User(UserMixin, db.Model):
         self._password = password
     def setCart(self):
         self.cart = Cart(user = self)
-
 
     def isCustomer(self):
         pass
@@ -142,9 +146,8 @@ class Cart(db.Model):
             db.session.commit()
             print(self.rentals)
 
-
         except:
-            print('no')
+            print("Couldn't add item into cart\n")
 
     def remove_item(self,item):
         try:
@@ -152,7 +155,7 @@ class Cart(db.Model):
             print(item_to_be_removed)
             self.rentals.remove(item_to_be_removed)
 
-            item_to_be_removed._available=1
+            item_to_be_removed._stock+=1
             db.session.commit()
         except:
             print("Couldn't remove item")
@@ -161,7 +164,7 @@ class Cart(db.Model):
         for item in self.rentals:
 
             self.rentals.remove(item)
-            item._available += 1;
+            item.stock += 1;
         db.session.commit()
 
 
@@ -176,7 +179,7 @@ class Rental(db.Model):
     _itemName = db.Column(db.String(15), unique=True);
     _itemCost = db.Column(db.Float)
     _itemImageUrl = db.Column(db.String(200))
-    _available = db.Column(db.Integer)
+    _stock = db.Column(db.Integer)
     type = db.Column(db.String(32))
     #foreign key is a primary key that refers to a key in another table
     __mapper_args__ = {
@@ -189,27 +192,32 @@ class Rental(db.Model):
         self._itemName = item_name
         self._itemCost = item_cost
         self._itemImageUrl = item_image_url
-        self._bootSize
-        self._available = stock
+        self._stock = stock
 
     carts = db.relationship('Cart', secondary='cart_with_items')
 
-    def getId():
-        return self._id
+    def getId(self):
+        pass
 
-    def getItemName():
-        return self._itemName
+    def getItemName(self):
+        pass
 
-    def getCost(self):
-        return self._itemCost
+    def getItemCost(self):
+        pass
+
+    def getItemImageUrl(self):
+        pass
+
+    def getItemStock(self):
+        pass
 
     def getRentals():
-        available_rentals = Rental.query.filter(Rental._available>=1)
+        available_rentals = Rental.query.filter(Rental._stock>=1)
         return available_rentals
 
 
 class Snowboard(Rental, db.Model):
-
+    _boardLength = db.Column(db.Float)
     __mapper_args__ = {
         'polymorphic_identity': 'snowboard'
     }
@@ -218,26 +226,51 @@ class Snowboard(Rental, db.Model):
         self._itemName = item_name
         self._itemCost = item_cost
         self._itemImageUrl = item_image_url
-        self._available = stock
-
+        self._stock = stock
+        self._boardLength = 180
 
     def getId(self):
         return self._id
 
     def getItemName(self):
-
         return self._itemName
 
-    def getCost(self):
+    def getItemCost(self):
         return self._itemCost
 
+    def getItemImageUrl(self):
+        return self._itemImageUrl
+
+    def getStock(self):
+        return self._Stock
+
+    def getBoardLength(self):
+        return self._boardLength
+
     def getRentals():
-        available_rentals = Snowboard.query.filter(Skis._available>=1)
+        available_rentals = Snowboard.query.filter(Snowboard._stock>=1)
         return available_rentals
 
+    def setId(self, id):
+        self._id = id
+
+    def setItemName(self, name):
+        self._itemName = name
+
+    def setCost(self, cost):
+        self._itemCost = cost
+
+    def setItemImageUrl(self, url):
+        self._itemImageUrl = url
+
+    def setItemStock(self, stock):
+        self._stock = stock
+
+    def setBoardLength(self, length):
+        self._boardLength = length
 
 class Skis(Rental,db.Model):
-
+    _skiLength = db.Column(db.Float)
     __mapper_args__ = {
         'polymorphic_identity': 'skis'
     }
@@ -247,7 +280,8 @@ class Skis(Rental,db.Model):
         self._itemName = item_name
         self._itemCost = item_cost
         self._itemImageUrl = item_image_url
-        self._available = stock
+        self._stock = stock
+        self._skiLength = 176
 
 
 
@@ -257,24 +291,44 @@ class Skis(Rental,db.Model):
     def getItemName(self):
         return self._itemName
 
-    def getCost(self):
+    def getItemCost(self):
         return self._itemCost
 
+    def getSkiLength(self):
+        return self._skiLength
     def getRentals():
-        available_rentals = Skis.query.filter(Skis._available>=1)
+        available_rentals = Skis.query.filter(Skis._stock>=1)
         return available_rentals
 
+    def setId(self, id):
+        self._id = id
+
+    def setItemName(self, name):
+        self._itemName = name
+
+    def setCost(self, cost):
+        self._itemCost = cost
+
+    def setItemImageUrl(self, url):
+        self._itemImageUrl = url
+
+    def setItemStock(self, stock):
+        self._stock = stock
+
+    def setSkiLength(self, length):
+        self._skiLength = length
 
 class Boots(Rental, db.Model):
+    _bootSize = db.Column(db.Float)
 
     __mapper_args__ = {
         'polymorphic_identity': 'boot'
     }
 
 
-    def __init__(self,item_id, item_name, item_cost, item_image_url, stock, boot_size):
+    def __init__(self,item_id, item_name, item_cost, item_image_url, stock):
         super().__init__(item_id, item_name, item_cost, item_image_url, stock)
-        self._bootSize = boot_size
+        self._bootSize = 25
 
 
     def getId(self):
@@ -294,8 +348,11 @@ class Boots(Rental, db.Model):
         return self._bootSize
 
     def getRentals():
-        available_rentals = Boots.query.filter(Boots._available>=1)
+        available_rentals = Boots.query.filter(Boots._stock>=1)
         return available_rentals
+
+    def setBootSize(self, size):
+        self._bootSize = size
 
 
 
@@ -309,18 +366,15 @@ class RentalItemFactory():
         self._itemCost = itemCost
         self._itemImageUrl = itemImageUrl
         self._stock = stock
-
     def makeSnowRental(self,newRentalType):
-        #Skis
         if newRentalType == "Ski":
             return Skis(self._id, self._itemName, self._itemCost, self._itemImageUrl, self._stock);
         elif newRentalType == "Snowboard":
-            print("we're making a snowboard\n");
             return Snowboard(self._id, self._itemName, self._itemCost, self._itemImageUrl, self._stock);
         elif newRentalType == "Boots":
-            print("Making a pair of boots")
+            return Boots(self._id, self._itemName, self._itemCost, self._itemImageUrl, self._stock)
         else:
-            print("Making a other type of rental")
+            return None
 
 
 
@@ -461,7 +515,8 @@ def dashboard():
     available_rentals = Rental.getRentals()
     available_ski_rentals = Skis.getRentals()
     available_snowboard_rentals = Snowboard.getRentals()
-    return render_template("dashboard.html", user=current_user, skis=available_ski_rentals, snowboards=available_snowboard_rentals, rental=available_rentals)
+    available_boot_rentals = Boots.getRentals()
+    return render_template("dashboard.html", user=current_user, skis=available_ski_rentals, snowboards=available_snowboard_rentals, rental=available_rentals, boots=available_boot_rentals)
 
 @app.route("/employeeDashboard", methods = ['POST', 'GET'])
 @login_required
@@ -488,7 +543,9 @@ def employeeDashboard():
     available_rentals = Rental.getRentals()
     available_ski_rentals = Skis.getRentals()
     available_snowboard_rentals = Snowboard.getRentals()
-    return render_template("employeeDashboard.html", user=current_user, skis=available_ski_rentals, snowboards=available_snowboard_rentals, rental=available_rentals)
+    available_boot_rentals = Boots.getRentals()
+
+    return render_template("employeeDashboard.html", user=current_user, skis=available_ski_rentals, snowboards=available_snowboard_rentals, rental=available_rentals, boots=available_boot_rentals)
 
 @app.route("/logout")
 @login_required

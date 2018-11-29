@@ -38,7 +38,21 @@ def read_in_snowboards(df):
             print("Failed to push items to database.\n")
 
 
+def read_in_boots(df):
+    for index,row in df.iterrows():
+        url = row['item_url']
 
+        #temp = main.Skis(int(row['item_id']), str(row['item_name']), float(row['item_cost']), url, int(1))
+        temp = main.RentalItemFactory(int(row['item_id']), str(row['item_name']), float(row['item_cost']), url, int(row['stock']))
+        temp = temp.makeSnowRental("Boots");
+        temp.setBootSize(float(row['boot_size']))
+        try:
+            db.session.add(temp)
+            db.session.commit()
+            print("Added %s to the database\n" % temp.getItemName())
+        except:
+            db.session.rollback()
+            print("Failed to push items to database.\n")
 
 
 
@@ -55,3 +69,8 @@ if __name__ == '__main__':
     snowboard_objects = pd.read_csv(base_url+"/snowboardRentals.csv")
     print("Read in snowboard objects from csv\n\n")
     read_in_snowboards(snowboard_objects)
+
+
+    boot_objects = pd.read_csv(base_url+"/bootRentals.csv")
+    print("Read in boot objects from csv\n\n")
+    read_in_boots(boot_objects)
