@@ -132,7 +132,7 @@ class Cart(db.Model):
     def get_total_cost(self):
         total = 0
         for rental in self.rentals:
-            total += rental.getCost()
+            total += rental.getItemCost()
         return total;
 
 
@@ -142,7 +142,7 @@ class Cart(db.Model):
         print(item._itemName)
         try:
             self.rentals.append(item)
-            item._available -= 1
+            item._stock -= 1
             db.session.commit()
             print(self.rentals)
 
@@ -161,11 +161,13 @@ class Cart(db.Model):
             print("Couldn't remove item")
 
     def checkout(self):
-        for item in self.rentals:
+        while len(self.rentals)>0:
+            self.rentals[0]._stock += 1
+            self.rentals.remove(self.rentals[0])
 
-            self.rentals.remove(item)
-            item.stock += 1;
+            print(self.rentals)
         db.session.commit()
+
 
 
 
@@ -338,7 +340,7 @@ class Boots(Rental, db.Model):
 
         return self._itemName
 
-    def getCost(self):
+    def getItemCost(self):
         return self._itemCost
 
     def getUrl(self):

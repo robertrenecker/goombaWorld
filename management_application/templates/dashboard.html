@@ -143,7 +143,37 @@
 
           <div class="collapse multi-collapse" id="collapseOther">
             <div class="card card-body">
-              <h2>Put Other Rentals Here</h2>
+              <h2>Boot Rentals</h2>
+              <ul class="list-group">
+              {% for boot in boots %}
+              <li class='list-group-item'>
+                <div class="row">
+                  <h3> {{ boot._itemName }}</h3>
+                  <div class="col col-lg-3">
+
+                      <img src="{{boot._itemImageUrl}}" style="width:104px;height:150px;"/>
+                  </div>
+                  <div class="col col-lg-3">
+
+                      <h4>Boot Size</h4>
+                      <h5>{{boot.getBootSize()}}</h5>
+                  </div>
+
+                  <div class="col col-lg-2">
+                    <h4>Cost</h4>
+                    <h5>${{ boot._itemCost }}/day</h5>
+                  </div>
+                  <div class="col col-lg-2">
+                    <form method='POST'>
+                      <button class="btn btn-lg btn-primary btn-block" type="submit"  name="selected" value={{boot._id}}>Add Item</button>
+                    </form>
+                  </div>
+
+                </div>
+              </li>
+
+              {% endfor %}
+              </ul>
             </div>
           </div>
 

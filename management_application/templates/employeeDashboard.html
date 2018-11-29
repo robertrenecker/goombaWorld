@@ -85,10 +85,14 @@
                       <img src="{{ski._itemImageUrl}}" style="width:104px;height:150px;"/>
                   </div>
                   <div class="col col-lg-3">
-                    <h4>{{ ski._itemName}} </h4>
+
+                      <h4>Ski Length</h4>
+                      <h5>{{ski.getSkiLength()}}</h5>
                   </div>
-                  <div class="col col-lg-1">
-                    <h4>{{ ski._itemCost }}</h4>
+
+                  <div class="col col-lg-2">
+                    <h4>Cost</h4>
+                    <h5>${{ ski.getItemCost() }}/day</h5>
                   </div>
                   <div class="col col-lg-2">
                     <form method='POST'>
